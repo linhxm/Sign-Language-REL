@@ -1,10 +1,10 @@
 """Factory + implementation cho mọi pose encoder pose-only khả thi (P1/P2/P4/P5/P6,
-docs/1_Thuyet_Trinh_Tong_Hop.md §A — P3=ST-GCN nằm riêng ở models/stgcn_encoder.py vì đã có từ trước).
+docs/Sign_Language_REL.pdf - P3=ST-GCN nằm riêng ở models/stgcn_encoder.py vì đã có từ trước).
 
 Mọi encoder cùng 1 interface: __init__(cfg, pose_dim) rồi forward(pose, pose_mask) -> [B, T, d_model]
 (pose_mask: True = vị trí padding, đúng chuẩn nn.Transformer key_padding_mask). Nhờ interface thống
 nhất này, `SLTTransformer`, decoder, và toàn bộ RL trainer (train_scst.py/train_ppo.py) dùng chung
-1 code path bất kể chọn encoder nào — đã verify tính chất này với ST-GCN (P8, docs/1_Thuyet_Trinh_Tong_Hop.md §A),
+1 code path bất kể chọn encoder nào - đã verify tính chất này với ST-GCN (P8, docs/Sign_Language_REL.pdf),
 generalize trực tiếp cho các encoder mới ở đây.
 """
 import math
@@ -43,7 +43,7 @@ class PoseEmbed(nn.Module):
 
 
 class TransformerPoseEncoder(nn.Module):
-    """P1 — PoseEmbed + TransformerEncoder chuẩn (kiến trúc gốc của repo)."""
+    """P1 - PoseEmbed + TransformerEncoder chuẩn (kiến trúc gốc của repo)."""
     def __init__(self, cfg, pose_dim: int):
         super().__init__()
         m = cfg.model
@@ -61,9 +61,9 @@ class TransformerPoseEncoder(nn.Module):
 
 
 class GCNPoseEncoder(nn.Module):
-    """P2 — thay PoseEmbed bằng 1-2 lớp Graph Conv cố định trên đồ thị 75 khớp (tái dùng
+    """P2 - thay PoseEmbed bằng 1-2 lớp Graph Conv cố định trên đồ thị 75 khớp (tái dùng
     `_build_adjacency`/`GraphConv` đã có ở models/stgcn_encoder.py cho P3), phần Transformer
-    encoder-decoder giữ nguyên (docs/1_Thuyet_Trinh_Tong_Hop.md §A P2)."""
+    encoder-decoder giữ nguyên (docs/Sign_Language_REL.pdf P2)."""
     def __init__(self, cfg, pose_dim: int):
         super().__init__()
         assert pose_dim == 183, "GCNPoseEncoder giả định đúng layout 33 body + 21x2 hand"
@@ -106,9 +106,9 @@ class GCNPoseEncoder(nn.Module):
 
 
 class GraphTransformerPoseEncoder(nn.Module):
-    """P4 — thay graph conv cố định bằng self-attention học được trực tiếp trên 75 token-khớp mỗi
-    frame (spatial attention), rồi Transformer chuẩn trên trục thời gian (temporal attention) —
-    factored spatio-temporal attention, không dùng đồ thị cố định như P2/P3 (docs/1_Thuyet_Trinh_Tong_Hop.md §A P4).
+    """P4 - thay graph conv cố định bằng self-attention học được trực tiếp trên 75 token-khớp mỗi
+    frame (spatial attention), rồi Transformer chuẩn trên trục thời gian (temporal attention) -
+    factored spatio-temporal attention, không dùng đồ thị cố định như P2/P3 (docs/Sign_Language_REL.pdf P4).
     Không cần mask ở tầng spatial vì luôn có đúng 75 khớp/frame (không padding theo chiều khớp)."""
     def __init__(self, cfg, pose_dim: int):
         super().__init__()
@@ -170,8 +170,8 @@ class _TCNBlock(nn.Module):
 
 
 class TCNPoseEncoder(nn.Module):
-    """P5 — chồng Conv1D dilated (không causal, `padding=dilation` giữ nguyên độ dài T) nén/tổng hợp
-    chuỗi pose theo thời gian trước khi vào Transformer encoder (docs/1_Thuyet_Trinh_Tong_Hop.md §A P5). Số layer
+    """P5 - chồng Conv1D dilated (không causal, `padding=dilation` giữ nguyên độ dài T) nén/tổng hợp
+    chuỗi pose theo thời gian trước khi vào Transformer encoder (docs/Sign_Language_REL.pdf P5). Số layer
     TransformerEncoder giảm còn phân nửa so với P1 vì TCN đã gánh một phần việc tổng hợp cục bộ."""
     def __init__(self, cfg, pose_dim: int):
         super().__init__()
@@ -198,12 +198,12 @@ class TCNPoseEncoder(nn.Module):
 
 
 class PerceiverPoseEncoder(nn.Module):
-    """P6 — Perceiver IO rút gọn (Jaegle et al., ICML 2021): cross-attention nén chuỗi pose [B,T,D]
+    """P6 - Perceiver IO rút gọn (Jaegle et al., ICML 2021): cross-attention nén chuỗi pose [B,T,D]
     vào 1 latent array cố định (n_latents << T), self-attention xử lý trên latent, rồi cross-attention
     "decode" lại đúng T bước (query = chính pose-embedding theo vị trí gốc) để output vẫn có shape
-    [B,T,d_model] — giữ đúng interface chung với các encoder khác (docs/1_Thuyet_Trinh_Tong_Hop.md §A P6,
-    docs/1_Thuyet_Trinh_Tong_Hop.md §B §6.3). Độ phức tạp attention chính O(T·n_latents), tuyến tính theo T
-    thay vì bậc 2 như self-attention toàn cục — lợi thế trực tiếp cho chuỗi pose dài (300+ frame)."""
+    [B,T,d_model] - giữ đúng interface chung với các encoder khác (docs/Sign_Language_REL.pdf P6,
+    docs/Sign_Language_REL.pdf). Độ phức tạp attention chính O(T·n_latents), tuyến tính theo T
+    thay vì bậc 2 như self-attention toàn cục - lợi thế trực tiếp cho chuỗi pose dài (300+ frame)."""
     def __init__(self, cfg, pose_dim: int):
         super().__init__()
         m = cfg.model
@@ -239,7 +239,7 @@ class PerceiverPoseEncoder(nn.Module):
 
 
 def build_pose_encoder(cfg, pose_dim: int, encoder_type: str) -> nn.Module:
-    """Factory duy nhất cho mọi pose encoder — dùng bởi SLTTransformer (models/slt_transformer.py)."""
+    """Factory duy nhất cho mọi pose encoder - dùng bởi SLTTransformer (models/slt_transformer.py)."""
     if encoder_type == "transformer":
         return TransformerPoseEncoder(cfg, pose_dim)
     if encoder_type == "stgcn":
@@ -253,4 +253,4 @@ def build_pose_encoder(cfg, pose_dim: int, encoder_type: str) -> nn.Module:
         return TCNPoseEncoder(cfg, pose_dim)
     if encoder_type == "perceiver":
         return PerceiverPoseEncoder(cfg, pose_dim)
-    raise ValueError(f"encoder_type không hợp lệ: {encoder_type!r} — xem docs/1_Thuyet_Trinh_Tong_Hop.md §A")
+    raise ValueError(f"encoder_type không hợp lệ: {encoder_type!r} - xem docs/Sign_Language_REL.pdf")

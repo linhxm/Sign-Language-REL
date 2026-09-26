@@ -1,9 +1,9 @@
 """Tổng hợp toàn bộ kết quả từ mọi lần chạy (main.py, measure_latency.py) thành 1 BẢNG SO SÁNH
-DUY NHẤT giữa các phương pháp — phục vụ trực tiếp yêu cầu so sánh thuật toán RL/kiến trúc encoder
-với nhau (docs/1_Thuyet_Trinh_Tong_Hop.md §A §4.2, §E). Quét đệ quy `--work_dir` (mặc định
-/kaggle/working) tìm mọi test_results.json/*_history.json/latency_*.json đã có — KHÔNG cần khai
+DUY NHẤT giữa các phương pháp - phục vụ trực tiếp yêu cầu so sánh thuật toán RL/kiến trúc encoder
+với nhau (docs/Sign_Language_REL.pdf, §E). Quét đệ quy `--work_dir` (mặc định
+/kaggle/working) tìm mọi test_results.json/*_history.json/latency_*.json đã có - KHÔNG cần khai
 báo trước danh sách run, chạy lại script này sau mỗi lần train xong 1 pipeline mới là bảng tự cập
-nhật (đúng tinh thần "chưa code liền không sao, miễn verify được khi cần" — ở đây là verify bằng
+nhật (đúng tinh thần "chưa code liền không sao, miễn verify được khi cần" - ở đây là verify bằng
 số liệu thật thay vì bảng liệt kê lý thuyết).
 
 Usage (trên Kaggle, cuối notebook sau khi đã chạy các cell train):
@@ -19,7 +19,7 @@ def _parse_run_name(dirname: str):
     """`{tag}_{encoder}_subset{pct}[_hậu-tố]` (quy ước main.py, cộng hậu tố tự do run_all.py gắn
     thêm cho ablation -- vd `_reinforce_nobaseline`, `_a2c`, `_curriculum`) ->
     (tag[+hậu tố], encoder, subset_pct).
-    Best-effort — không raise nếu không khớp, trả None cho phần không parse được.
+    Best-effort - không raise nếu không khớp, trả None cho phần không parse được.
 
     BUG cũ (sửa ở đây): `graph_transformer` chứa "transformer" làm hậu tố. Với `(.*)` GREEDY,
     backtrack từ phải sang trái dừng ở prefix DÀI NHẤT có thể khớp -- với dirname

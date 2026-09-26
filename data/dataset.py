@@ -9,8 +9,8 @@ import pandas as pd
 
 # PHOENIX-2014T phân chia: train/dev/test trong file annotation csv
 # Format: name|video|start|end|speaker|orth|translation
-# Ta chỉ cần: name (để load pose) và translation (text Đức). Cột `orth` (gloss) KHÔNG dùng —
-# nhánh gloss/P7 đã gỡ khỏi pipeline (xem docs/2_Huong_Phat_Trien.md).
+# Ta chỉ cần: name (để load pose) và translation (text Đức). Cột `orth` (gloss) KHÔNG dùng -
+# nhánh gloss/P7 đã gỡ khỏi pipeline (xem docs/Sign_Language_REL.pdf).
 
 class PhoenixSLTDataset(Dataset):
     def __init__(self, annotation_csv: str, pose_dir: str, tokenizer,
@@ -29,11 +29,11 @@ class PhoenixSLTDataset(Dataset):
         self.max_frames = max_frames
         self.max_text_len = max_text_len
         self.pose_dim = pose_dim
-        self._n_missing = 0        # đếm file pose thiếu — xem cảnh báo trong __getitem__
+        self._n_missing = 0        # đếm file pose thiếu - xem cảnh báo trong __getitem__
 
         # Fail-fast: nếu pose_cache_dir sai hoàn toàn thì phát hiện NGAY, đừng để train xong
         # 80 epoch mới nhận ra model học từ toàn vector 0. Đây là chế độ hỏng nguy hiểm nhất
-        # của pipeline này vì nó KHÔNG crash — loss vẫn giảm, BLEU vẫn ~0, trông như "model kém".
+        # của pipeline này vì nó KHÔNG crash - loss vẫn giảm, BLEU vẫn ~0, trông như "model kém".
         if not os.path.isdir(pose_dir):
             raise FileNotFoundError(
                 f"pose_cache_dir không tồn tại: {pose_dir}\n"
@@ -42,7 +42,7 @@ class PhoenixSLTDataset(Dataset):
         n_npz = len(glob.glob(os.path.join(pose_dir, "*.npz")))
         if n_npz == 0:
             raise FileNotFoundError(
-                f"Không có file .npz nào trong {pose_dir} — pose chưa được extract hoặc mount sai."
+                f"Không có file .npz nào trong {pose_dir} - pose chưa được extract hoặc mount sai."
             )
 
     def __len__(self):
@@ -58,14 +58,14 @@ class PhoenixSLTDataset(Dataset):
         if os.path.exists(pose_path):
             pose = np.load(pose_path)["pose"].astype(np.float32)
         else:
-            # Fallback để 1 file thiếu lẻ tẻ không làm crash cả run — NHƯNG phải kêu to,
+            # Fallback để 1 file thiếu lẻ tẻ không làm crash cả run - NHƯNG phải kêu to,
             # vì im lặng ở đây nghĩa là model được train trên vector 0 mà không ai biết.
             self._n_missing += 1
             if self._n_missing in (1, 10, 100, 1000):
                 warnings.warn(
                     f"[{os.path.basename(self.pose_dir)}] thiếu {self._n_missing} file pose "
                     f"(gần nhất: {name}.npz). Nếu con số này lớn thì tên file .npz KHÔNG khớp "
-                    f"cột `name` của annotation csv — kiểm tra lại data/extract_poses.py.",
+                    f"cột `name` của annotation csv - kiểm tra lại data/extract_poses.py.",
                     RuntimeWarning, stacklevel=2)
             pose = np.zeros((1, self.pose_dim), dtype=np.float32)
 
@@ -113,7 +113,7 @@ def collate_fn(batch, pad_id: int = 0):
 
 
 class LengthCurriculumSampler(Sampler):
-    """Curriculum RL (C.12, docs/1_Thuyet_Trinh_Tong_Hop.md) + Ý tưởng F.18: duyệt batch theo
+    """Curriculum RL (C.12, docs/Sign_Language_REL.pdf) + Ý tưởng F.18: duyệt batch theo
     câu ngắn->dài (dựa độ dài text tham chiếu, không phải độ dài pose) thay vì shuffle ngẫu nhiên --
     câu ngắn dễ đạt reward dương sớm hơn, giảm cold-start RL. Batch nội bộ đã sort (đồng đều độ dài,
     cũng giảm padding lãng phí); THỨ TỰ các batch được xáo trộn theo seed để không cố định 100%."""

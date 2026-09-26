@@ -1,5 +1,5 @@
 """
-Orchestrator — chạy TOÀN BỘ ma trận thí nghiệm (baseline sàn + so sánh 6 encoder / 8 thuật toán RL
+Orchestrator - chạy TOÀN BỘ ma trận thí nghiệm (baseline sàn + so sánh 6 encoder / 8 thuật toán RL
 / reward ablation / latency) cho MỘT subset ratio, trong MỘT process Python duy nhất (không gọi rời
 `!python ...` từng cell).
 
@@ -7,7 +7,7 @@ Orchestrator — chạy TOÀN BỘ ma trận thí nghiệm (baseline sàn + so s
 5 / 10 / 25% (train %split train, dev/test LUÔN full; 5% đã chạy làm mốc, 10/25% chạy tiếp khi có
 quota) + thí nghiệm PHỤ How2Sign 10/25% (train vào work_dir RIÊNG để tách dataset):
 
-    python run_all.py --subset 0.05     # 5% (toàn ma trận, ~6-9h) — đã chạy làm mốc
+    python run_all.py --subset 0.05     # 5% (toàn ma trận, ~6-9h) - đã chạy làm mốc
     python run_all.py --subset 0.10     # 10% (~12-18h)
     python run_all.py --subset 0.25     # 25% (~20-25h)
     python run_all.py --subset 1.0      # có thể cần NHIỀU session (xem dưới)
@@ -15,13 +15,13 @@ quota) + thí nghiệm PHỤ How2Sign 10/25% (train vào work_dir RIÊNG để t
 Gộp mọi mức + dataset thành 1 bảng pivot: python scripts/make_overview.py --root phoenix=<wd> ...
 
 RESUMABLE: mỗi bước con ghi 1 file marker `<log_dir>/.done_<key>` khi xong. Nếu Kaggle hết giờ
-session (~12h) giữa chừng, chỉ cần bấm chạy LẠI ĐÚNG LỆNH TRÊN — mọi bước đã xong tự động bị bỏ
+session (~12h) giữa chừng, chỉ cần bấm chạy LẠI ĐÚNG LỆNH TRÊN - mọi bước đã xong tự động bị bỏ
 qua, chỉ bước dở dang/còn lại chạy tiếp. Vì epoch KHÔNG giảm theo subset (xe_epochs=80/rl_epochs=20
-cố định, đã xác nhận), subset 100% nhiều khả năng cần >1 session — đây là hành vi DỰ KIẾN, không
+cố định, đã xác nhận), subset 100% nhiều khả năng cần >1 session - đây là hành vi DỰ KIẾN, không
 phải lỗi.
 
-Một bước lỗi (vd `graph_transformer` OOM — đã cảnh báo trong docs) chỉ bị log lại và bỏ qua, KHÔNG
-làm hỏng toàn bộ ma trận còn lại — xem hàm `step()`.
+Một bước lỗi (vd `graph_transformer` OOM - đã cảnh báo trong docs) chỉ bị log lại và bỏ qua, KHÔNG
+làm hỏng toàn bộ ma trận còn lại - xem hàm `step()`.
 
 Muốn giới hạn phạm vi (vd chỉ core, chạy nhanh để kiểm tra luồng), dùng --groups:
     python run_all.py --subset 0.05 --groups core,encoders
@@ -29,7 +29,7 @@ Mặc định --groups all = chạy hết. Muốn chọn từng encoder/algo ri�
 `train_select.py` (single / encoder_allrl / rl_allenc).
 
 Các thí nghiệm liên quan GLOSS (P7 two-stage pose→gloss→text) và RL NGOÀI DECODER (frame/landmark
-selection, decode-policy) đã được GỠ khỏi pipeline này — xem docs/2_Huong_Phat_Trien.md (hướng phát
+selection, decode-policy) đã được GỠ khỏi pipeline này - xem docs/Sign_Language_REL.pdf (hướng phát
 triển tương lai).
 
 Cuối MỖI lần chạy (dù --groups gì, dù có lỗi ở vài bước), tự động sinh lại:
@@ -70,7 +70,7 @@ def step(key: str, log_dir: str, fn, *a, **kw):
     os.makedirs(log_dir, exist_ok=True)
     marker = os.path.join(log_dir, f".done_{key}")
     if os.path.exists(marker):
-        print(f"[SKIP] {key} (đã xong — {marker})")
+        print(f"[SKIP] {key} (đã xong - {marker})")
         return True
     print(f"\n{'='*78}\n[RUN] {key}\n  log_dir = {log_dir}\n{'='*78}")
     t0 = time.time()
@@ -92,7 +92,7 @@ def _eval_and_merge(log_dir, ckpt_path, key, cfg, tokenizer, test_loader, encode
     cùng convention với main.py::_merge_json / scripts/eval_baselines.py::_merge_results."""
     import torch
     if not os.path.exists(ckpt_path):
-        print(f"[i] Không có {ckpt_path} — bỏ qua eval cho {key} (RL có thể chưa vượt XE ở đây).")
+        print(f"[i] Không có {ckpt_path} - bỏ qua eval cho {key} (RL có thể chưa vượt XE ở đây).")
         return
     cfg.model.encoder_type = encoder
     model = SLTTransformer(cfg, vocab_size=tokenizer.vocab_size, pose_dim=cfg.data.pose_dim,
@@ -208,7 +208,7 @@ def run_ablations(cfg, subset, pct, wd, core_xe_ckpt, tokenizer, train_loader, d
     step("curriculum", os.path.join(wd, f"run1_transformer_subset{pct}_curriculum"), _curriculum)
 
 
-REWARD_COMBOS = [  # (tag, rep_penalty, len_penalty) -- xem docs/1_Thuyet_Trinh_Tong_Hop.md §K.2
+REWARD_COMBOS = [  # (tag, rep_penalty, len_penalty) -- xem docs/Sign_Language_REL.pdf
     ("rw_bleu_only", 0.0, 0.0),
     ("rw_default",   0.5, 0.0),
     ("rw_len_only",  0.0, 0.5),

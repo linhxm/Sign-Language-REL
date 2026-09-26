@@ -1,4 +1,4 @@
-"""Transformer-based SLT. Encoder = pose features (P1-P6, docs/1_Thuyet_Trinh_Tong_Hop.md §A); Decoder =
+"""Transformer-based SLT. Encoder = pose features (P1-P6, docs/Sign_Language_REL.pdf); Decoder =
 autoregressive text (dùng chung cho mọi lựa chọn encoder)."""
 import math
 import torch
@@ -12,7 +12,7 @@ __all__ = ["PositionalEncoding", "PoseEmbed", "SLTTransformer", "ValueHead"]
 class SLTTransformer(nn.Module):
     def __init__(self, cfg, vocab_size: int, pose_dim: int = 183, encoder_type: str = "transformer"):
         """encoder_type: "transformer"|"stgcn"|"gcn"|"graph_transformer"|"tcn"|"perceiver"
-        (P1/P3/P2/P4/P5/P6 — docs/1_Thuyet_Trinh_Tong_Hop.md §A), dựng qua factory `models.encoders.build_pose_encoder`
+        (P1/P3/P2/P4/P5/P6 - docs/Sign_Language_REL.pdf), dựng qua factory `models.encoders.build_pose_encoder`
         để mọi biến thể cùng interface `forward(pose, pose_mask) -> [B,T,d_model]`. Decoder giữ
         nguyên ở mọi lựa chọn encoder để cô lập đúng 1 biến so sánh (kiến trúc encoder)."""
         super().__init__()
@@ -32,22 +32,22 @@ class SLTTransformer(nn.Module):
         # stream CHƯA chuẩn hoá -- độ lớn cộng dồn qua từng layer.
         # Đo thực tế trước khi sửa: hidden std = 17.8 (đáng lẽ ~1) -> logits std = 304.
         # Hậu quả: softmax bão hoà thành one-hot -> log_prob = 0.0 CHÍNH XÁC -> gradient của
-        # policy gradient bằng 0 -> RL không học được gì. Xem docs/1_Thuyet_Trinh_Tong_Hop.md §K.
+        # policy gradient bằng 0 -> RL không học được gì. Xem docs/Sign_Language_REL.pdf.
         self.decoder = nn.TransformerDecoder(dec_layer, m.n_dec_layers,
                                              norm=nn.LayerNorm(m.d_model))
 
         self.out_proj = nn.Linear(m.d_model, vocab_size, bias=False)
-        # Weight tying (Press & Wolf 2017) — out_proj DÙNG CHUNG tensor với tok_embed.
+        # Weight tying (Press & Wolf 2017) - out_proj DÙNG CHUNG tensor với tok_embed.
         self.out_proj.weight = self.tok_embed.weight
 
         # Init embedding theo std = d_model^-0.5 thay vì N(0,1) mặc định của nn.Embedding.
         # Lý do kép:
-        #  (a) decode_step nhân embedding với sqrt(d_model) (chuẩn Vaswani 2017) — chuẩn đó giả
+        #  (a) decode_step nhân embedding với sqrt(d_model) (chuẩn Vaswani 2017) - chuẩn đó giả
         #      định embedding có phương sai 1/d_model để sau khi nhân thì về đúng scale ~1.
         #      Với N(0,1) mặc định thì input decoder bị thổi lên 16 lần.
         #  (b) Do weight tying, CHÍNH tensor này cũng là ma trận out_proj: rows có norm ~sqrt(256)
         #      làm logits lớn thêm một lần nữa.
-        # Sau khi sửa (a)+(b)+final norm: logits std ≈ 1.0, entropy ban đầu ≈ 7.5/8.0 nats —
+        # Sau khi sửa (a)+(b)+final norm: logits std ≈ 1.0, entropy ban đầu ≈ 7.5/8.0 nats -
         # policy còn đủ entropy để explore khi vào phase RL (khớp chủ đích của label_smoothing, §G.8).
         nn.init.normal_(self.tok_embed.weight, mean=0.0, std=m.d_model ** -0.5)
         with torch.no_grad():
@@ -61,7 +61,7 @@ class SLTTransformer(nn.Module):
     def decode_step(self, tgt_ids, memory, memory_mask, tgt_mask=None, return_hidden: bool = False):
         """Dùng cho cả training (teacher forcing) lẫn inference.
         return_hidden=True: trả thêm hidden state trước out_proj (dùng cho value head của PPO,
-        xem training/train_ppo.py) — không ảnh hưởng các lời gọi cũ (mặc định False)."""
+        xem training/train_ppo.py) - không ảnh hưởng các lời gọi cũ (mặc định False)."""
         y = self.tok_embed(tgt_ids) * math.sqrt(self.d_model)
         y = self.pos_enc(y)
         L = tgt_ids.size(1)
@@ -71,7 +71,7 @@ class SLTTransformer(nn.Module):
                            memory_key_padding_mask=memory_mask)
         logits = self.out_proj(out)  # [B, L, V]
         if return_hidden:
-            return logits, out  # out: [B, L, D] — hidden trước out_proj
+            return logits, out  # out: [B, L, D] - hidden trước out_proj
         return logits
 
     def forward(self, pose, pose_mask, tgt_ids, tgt_mask=None):
@@ -82,8 +82,8 @@ class SLTTransformer(nn.Module):
     def greedy_decode(self, pose, pose_mask, bos_id: int, eos_id: int, max_len: int = 60,
                       memory=None):
         """memory: nếu đã có sẵn (encode() gọi trước đó), truyền vào để tránh forward encoder
-        lại lần nữa — quan trọng trong SCST/PPO nơi greedy+sample decode dùng chung 1 batch input
-        (xem docs/1_Thuyet_Trinh_Tong_Hop.md §J điểm yếu B.6)."""
+        lại lần nữa - quan trọng trong SCST/PPO nơi greedy+sample decode dùng chung 1 batch input
+        (xem docs/Sign_Language_REL.pdf điểm yếu B.6)."""
         if memory is None:
             memory = self.encode(pose, pose_mask)
         B = memory.size(0)
@@ -104,9 +104,9 @@ class SLTTransformer(nn.Module):
         """Sample sequence cho SCST/PPO. Trả về:
             ys         [B, L]    : token đã sample (sau EOS được nhồi EOS).
             log_probs  [B, L-1]  : log π của token đã bốc (0 ở vị trí sau khi câu kết thúc).
-            entropies  [B, L-1]  : entropy H(π) mỗi bước (0 sau khi kết thúc) — cho entropy bonus.
+            entropies  [B, L-1]  : entropy H(π) mỗi bước (0 sau khi kết thúc) - cho entropy bonus.
             hiddens    [B, L-1, D] (chỉ nếu return_hidden=True): hidden state trước out_proj mỗi
-                       bước — input cho value head PPO (training/train_ppo.py).
+                       bước - input cho value head PPO (training/train_ppo.py).
         Các vị trí sau EOS để 0 nên không đóng góp vào gradient/loss.
         memory: xem ghi chú ở greedy_decode."""
         if memory is None:
@@ -145,14 +145,14 @@ class SLTTransformer(nn.Module):
                            length_penalty: float = 0.6, memory=None,
                            return_all_beams: bool = False):
         """Beam search chuẩn (per-sample, không batch-song song giữa các sample để đơn giản hoá
-        — chấp nhận chậm hơn vì chỉ dùng lúc eval/so sánh cuối, không nằm trong training loop).
-        Điểm yếu C.12 (docs/1_Thuyet_Trinh_Tong_Hop.md §J): trước bản này, evaluate() chỉ có greedy, không
+        - chấp nhận chậm hơn vì chỉ dùng lúc eval/so sánh cuối, không nằm trong training loop).
+        Điểm yếu C.12 (docs/Sign_Language_REL.pdf): trước bản này, evaluate() chỉ có greedy, không
         so sánh công bằng được với số liệu literature (đa số báo cáo beam=4-5).
 
         return_all_beams=True: trả thêm `all_beams` (list độ dài B, mỗi phần tử là list các
-        (ys_1d, score) của TẤT CẢ beam cuối cùng, không chỉ beam tốt nhất) — dùng làm nguồn candidate
+        (ys_1d, score) của TẤT CẢ beam cuối cùng, không chỉ beam tốt nhất) - dùng làm nguồn candidate
         cho MRT (C.9, training/train_mrt.py) khi `mrt_candidate_source="beam"`, cũng chính là cách
-        hiện thực hoá Ý tưởng F.13 (RL/MRT cho beam search policy, docs/1_Thuyet_Trinh_Tong_Hop.md
+        hiện thực hoá Ý tưởng F.13 (RL/MRT cho beam search policy, docs/Sign_Language_REL.pdf
         mục F) mà không cần viết riêng 1 vòng lặp beam thứ 2."""
         if memory is None:
             memory = self.encode(pose, pose_mask)
@@ -203,10 +203,10 @@ class SLTTransformer(nn.Module):
 
 
 class ValueHead(nn.Module):
-    """Critic V(s_t) cho PPO (training/train_ppo.py) — nhận hidden state decoder mỗi bước
+    """Critic V(s_t) cho PPO (training/train_ppo.py) - nhận hidden state decoder mỗi bước
     (trước out_proj, xem SLTTransformer.decode_step(..., return_hidden=True)) và dự đoán giá trị
     kỳ vọng của reward cuối câu tính từ bước đó. Tách riêng khỏi SLTTransformer (không share
-    tham số) để không ảnh hưởng checkpoint XE/SCST đã có — chỉ cần thêm module này khi chạy PPO."""
+    tham số) để không ảnh hưởng checkpoint XE/SCST đã có - chỉ cần thêm module này khi chạy PPO."""
     def __init__(self, d_model: int, hidden: int = None):
         super().__init__()
         hidden = hidden or d_model // 2

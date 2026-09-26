@@ -1,6 +1,6 @@
 """Lõi inference cho demo: video -> MediaPipe pose [T,183] -> SLTTransformer -> câu tiếng Đức.
 
-Dùng LẠI nguyên si code train (models/, configs/, data/tokenizer.py) thay vì chép lại kiến trúc —
+Dùng LẠI nguyên si code train (models/, configs/, data/tokenizer.py) thay vì chép lại kiến trúc -
 nếu chép, chỉ cần lệch 1 tham số (d_model, norm cuối, weight tying) là load_state_dict vẫn chạy
 nhưng output thành rác, rất khó phát hiện. Vì vậy file này BẮT BUỘC tìm được thư mục `code/`.
 
@@ -32,8 +32,9 @@ import numpy as np
 # ---------------------------------------------------------------------------------------
 _CANDIDATE_CODE_DIRS = [
     os.environ.get("SLT_CODE_DIR", ""),
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "code"),
-    "/content/Sign-Language-REL_code",
+    "/content/Sign-Language-REL",
     "/content/code",
     os.path.join(os.getcwd(), "code"),
     os.getcwd(),
@@ -46,7 +47,7 @@ def find_code_dir() -> str:
             return os.path.abspath(c)
     raise FileNotFoundError(
         "Không tìm thấy thư mục code/ (cần models/slt_transformer.py).\n"
-        "-> git clone https://github.com/linhxm/Sign-Language-REL_code.git\n"
+        "-> git clone https://github.com/linhxm/Sign-Language-REL.git\n"
         "   rồi đặt biến môi trường SLT_CODE_DIR trỏ vào đó."
     )
 
@@ -98,7 +99,7 @@ class PoseStats:
 
 
 def _interpolate_segment(seg: np.ndarray, present: np.ndarray) -> np.ndarray:
-    """Copy nguyên logic data/extract_poses.py::_interpolate_segment — nội suy tuyến tính theo
+    """Copy nguyên logic data/extract_poses.py::_interpolate_segment - nội suy tuyến tính theo
     thời gian cho frame thiếu landmark. KHÔNG zero-fill: vector 0 dạy model "tay đứng yên ở gốc
     toạ độ" thay vì "thiếu dữ liệu"."""
     T = seg.shape[0]
@@ -240,7 +241,7 @@ class PoseExtractor:
 
 def subsample_to_max(pose: np.ndarray, max_frames: int = 300) -> np.ndarray:
     """Khớp data/dataset.py: video dài hơn max_frames thì lấy mẫu ĐỀU trên toàn chuỗi
-    (np.linspace), KHÔNG cắt đuôi — cắt đuôi sẽ mất nửa cuối câu."""
+    (np.linspace), KHÔNG cắt đuôi - cắt đuôi sẽ mất nửa cuối câu."""
     if len(pose) <= max_frames:
         return pose
     idxs = np.linspace(0, len(pose) - 1, max_frames).astype(int)
@@ -248,7 +249,7 @@ def subsample_to_max(pose: np.ndarray, max_frames: int = 300) -> np.ndarray:
 
 
 def load_pose_npz(path: str, max_frames: int = 300) -> np.ndarray:
-    """Đọc .npz đã trích sẵn (vd phoenix-poses) — cho phép demo trên đúng dữ liệu PHOENIX mà
+    """Đọc .npz đã trích sẵn (vd phoenix-poses) - cho phép demo trên đúng dữ liệu PHOENIX mà
     không cần chạy lại MediaPipe."""
     pose = np.load(path)["pose"].astype(np.float32)
     return subsample_to_max(pose, max_frames)

@@ -1,4 +1,4 @@
-"""Chọn PHẠM VI train qua --mode — để không phải chạy cả ma trận (run_all.py) khi chỉ cần 1 phần.
+"""Chọn PHẠM VI train qua --mode - để không phải chạy cả ma trận (run_all.py) khi chỉ cần 1 phần.
 Tất cả tái dùng run_experiment() của main.py (XE checkpoint được tái dùng đúng chỗ), cộng marker
 `.done_*` để chạy lại là bỏ qua bước đã xong trong cùng session.
 
@@ -49,7 +49,7 @@ def _step(key, log_dir, fn, *a, **kw):
     t0 = time.time()
     fn(*a, **kw)
     open(marker, "w").close()
-    print(f"[OK] {key} — {(time.time()-t0)/60:.1f} phút")
+    print(f"[OK] {key} - {(time.time()-t0)/60:.1f} phút")
 
 
 def _ld(cfg, tag, enc, subset):
@@ -98,9 +98,9 @@ def main():
     ap.add_argument("--subset", type=float, default=1.0)
     ap.add_argument("--tag", default="run1")
     ap.add_argument("--xe_ckpt", default=None,
-                    help="Tái dùng best_xe.pt có sẵn (vd từ dataset) thay vì train lại XE — "
+                    help="Tái dùng best_xe.pt có sẵn (vd từ dataset) thay vì train lại XE - "
                          "dùng cho single/encoder_allrl khi tách XE và RL ra 2 session.")
-    # --- reward override (không cần sửa config.py/.ipynb) — chọn 1 trong 4 reward cũ cho run này.
+    # --- reward override (không cần sửa config.py/.ipynb) - chọn 1 trong 4 reward cũ cho run này.
     #     4 reward = tổ hợp bật/tắt (w_rep, w_len) ∈ {0, 0.5}. KHÔNG dùng BERTScore. ---
     ap.add_argument("--w_bleu", type=float, default=None, help="Ghi đè reward_bleu_weight (mặc định 1.0)")
     ap.add_argument("--w_rep",  type=float, default=None,
@@ -116,7 +116,7 @@ def main():
         return
 
     cfg = CFG
-    # Ghi đè reward weights từ CLI (nếu có) TRƯỚC khi build tokenizer/model — áp cho mọi run RL.
+    # Ghi đè reward weights từ CLI (nếu có) TRƯỚC khi build tokenizer/model - áp cho mọi run RL.
     for attr, val in [("reward_bleu_weight", args.w_bleu),
                       ("reward_repetition_penalty", args.w_rep),
                       ("reward_length_penalty", args.w_len)]:

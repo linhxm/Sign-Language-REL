@@ -1,7 +1,7 @@
 """Lớp tương thích AMP giữa các phiên bản PyTorch.
 
 Vì sao cần: từ PyTorch 2.4, `torch.cuda.amp.autocast` và `torch.cuda.amp.GradScaler` bị
-deprecate và in FutureWarning ở MỌI batch — trên Kaggle (PyTorch 2.x) log train bị ngập
+deprecate và in FutureWarning ở MỌI batch - trên Kaggle (PyTorch 2.x) log train bị ngập
 cảnh báo, che mất số liệu thật (BLEU/advantage/rep_rate) mà ta cần đọc mỗi epoch.
 
 API mới là `torch.amp.autocast("cuda", ...)` / `torch.amp.GradScaler("cuda", ...)`, nhưng

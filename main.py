@@ -12,7 +12,7 @@ Phases:
 
 Kiến trúc encoder (--encoder transformer|stgcn) và thuật toán RL (--algo scst|ppo) chọn được qua
 CLI để phục vụ Experiment 4 (Transformer vs GCN) và Experiment 7 (PPO vs SCST) mà không cần sửa
-code — xem docs/1_Thuyet_Trinh_Tong_Hop.md §E.
+code - xem docs/Sign_Language_REL.pdf.
 """
 import argparse, os, sys, random, json
 import numpy as np
@@ -156,9 +156,9 @@ def main():
     parser.add_argument("--encoder",
                         choices=["transformer", "stgcn", "gcn", "graph_transformer", "tcn", "perceiver"],
                         default="transformer",
-                        help="Kiến trúc pose encoder P1-P6 (Experiment 4, docs/1_Thuyet_Trinh_Tong_Hop.md §A)")
+                        help="Kiến trúc pose encoder P1-P6 (Experiment 4, docs/Sign_Language_REL.pdf)")
     parser.add_argument("--algo", choices=["scst", "ppo", "mrt", "raml", "dpo"], default="scst",
-                        help="Thuật toán RL phase 2 (docs/1_Thuyet_Trinh_Tong_Hop.md §C)")
+                        help="Thuật toán RL phase 2 (docs/Sign_Language_REL.pdf)")
     parser.add_argument("--xe_ckpt", type=str, default=None,
                         help="Đường dẫn best_xe.pt của tag KHÁC để tái dùng ở --phase rl/eval "
                              "(vd reward ablation) thay vì <log_dir>/best_xe.pt mặc định")

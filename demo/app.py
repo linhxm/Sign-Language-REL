@@ -114,7 +114,7 @@ def build_ui(share_note: str = "") -> gr.Blocks:
     default_run = next((r for r in runs if "transformer_subset25" in r and r.endswith("subset25")),
                        runs[0] if runs else None)
 
-    with gr.Blocks(title="Sign Language Translation — XE vs SCST") as demo:
+    with gr.Blocks(title="Sign Language Translation - XE vs SCST") as demo:
         gr.Markdown(
             "# Dịch ngôn ngữ ký hiệu: XE vs SCST\n"
             "Upload một video ký hiệu → MediaPipe Holistic trích 183-d pose mỗi frame → "
@@ -122,7 +122,7 @@ def build_ui(share_note: str = "") -> gr.Blocks:
             "**hai checkpoint**: sau pha Cross-Entropy (`best_xe.pt`) và sau pha RL / SCST "
             "(`last_rl.pt`).\n\n"
             "> Model train trên **PHOENIX-2014T** (tin thời tiết, tiếng Đức, 1 người ký chính diện "
-            "trên nền xám) với BLEU-4 test ~6. Video ngoài miền đó sẽ cho câu lảm nhảm — đó là hành "
+            "trên nền xám) với BLEU-4 test ~6. Video ngoài miền đó sẽ cho câu lảm nhảm - đó là hành "
             "vi đúng của model, không phải lỗi demo. Muốn thấy output sát thực tế, nạp file pose "
             "`.npz` của một câu PHOENIX ở tab bên phải." + share_note
         )

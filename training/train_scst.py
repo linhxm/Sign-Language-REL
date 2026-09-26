@@ -4,8 +4,8 @@ LOAD checkpoint XE tốt nhất → fine-tune bằng RL.
 Reward: BLEU(sample) - BLEU(greedy_baseline)  [tính per-sample]
 Loss:   -(reward) * sum(log_prob_sample)
 
-Hỗ trợ Multi-sample SCST (cfg.train.rl_n_samples > 1, xem docs/1_Thuyet_Trinh_Tong_Hop.md §E Experiment 3)
-và Automatic Mixed Precision (cfg.train.use_amp, xem docs/1_Thuyet_Trinh_Tong_Hop.md §J điểm yếu B.7).
+Hỗ trợ Multi-sample SCST (cfg.train.rl_n_samples > 1, xem docs/Sign_Language_REL.pdf Experiment 3)
+và Automatic Mixed Precision (cfg.train.use_amp, xem docs/Sign_Language_REL.pdf điểm yếu B.7).
 """
 import os, time, json
 import torch
@@ -41,15 +41,15 @@ def length_penalty(hyp: str, ref: str) -> float:
 _bertscorer_cache = {}
 
 def bertscore_reward(hyp: str, ref: str, model_name: str) -> float:
-    """Reward 5 (docs/1_Thuyet_Trinh_Tong_Hop.md §E) — F1 BERTScore giữa hyp/ref.
+    """Reward 5 (docs/Sign_Language_REL.pdf) - F1 BERTScore giữa hyp/ref.
     Lazy-import + cache scorer theo model_name (tránh load lại BERT mỗi lần gọi).
-    CHI PHÍ CAO (1 forward BERT/lần gọi, không batch hoá) — chỉ bật (reward_bert_weight>0) ở
-    subset nhỏ khi chạy Experiment 9 (docs/1_Thuyet_Trinh_Tong_Hop.md §E), không dùng mặc định."""
+    CHI PHÍ CAO (1 forward BERT/lần gọi, không batch hoá) - chỉ bật (reward_bert_weight>0) ở
+    subset nhỏ khi chạy Experiment 9 (docs/Sign_Language_REL.pdf), không dùng mặc định."""
     try:
         from bert_score import BERTScorer
     except ImportError as e:
         raise RuntimeError(
-            "Cần `pip install bert-score` để dùng reward_bert_weight > 0 (xem KAGGLE_NOTEBOOK.ipynb)."
+            "Cần `pip install bert-score` để dùng reward_bert_weight > 0 (xem notebooks/02_train.ipynb)."
         ) from e
     if model_name not in _bertscorer_cache:
         _bertscorer_cache[model_name] = BERTScorer(model_type=model_name, lang="de",
@@ -61,7 +61,7 @@ def compute_reward(hyp: str, ref: str, cfg, rep_weight: float = None, len_weight
     """R = w_bleu*BLEU - w_rep*rep_penalty - w_len*length_penalty + w_bert*BERTScore.
     Mỗi weight đặt 0.0 để tắt thành phần tương ứng (dùng cho reward ablation, Experiment 2/9).
     rep_weight/len_weight: override cfg.train.reward_* -- dùng cho Curriculum reward (Reward 10,
-    docs/1_Thuyet_Trinh_Tong_Hop.md §E, C.12) khi cần "ramp" trọng số theo epoch thay vì cố định."""
+    docs/Sign_Language_REL.pdf, C.12) khi cần "ramp" trọng số theo epoch thay vì cố định."""
     if rep_weight is None:
         rep_weight = cfg.train.reward_repetition_penalty
     if len_weight is None:
@@ -136,17 +136,17 @@ def train_scst(model, train_loader, dev_loader, tokenizer, cfg, log_dir: str,
             refs = batch["text_raw"]
             B = pose.size(0)
 
-            # 1. Greedy baseline (no grad) — CHỈ tính khi rl_use_baseline=True (SCST, mặc định).
-            #    rl_use_baseline=False = REINFORCE thuần (C.1, docs/1_Thuyet_Trinh_Tong_Hop.md):
+            # 1. Greedy baseline (no grad) - CHỈ tính khi rl_use_baseline=True (SCST, mặc định).
+            #    rl_use_baseline=False = REINFORCE thuần (C.1, docs/Sign_Language_REL.pdf):
             #    bỏ hẳn baseline, advantage = R(sample) trực tiếp -- variance cao hơn nhiều, chỉ
             #    dùng để ablation chứng minh vai trò baseline, không phải mặc định.
             #    rl_baseline_eval_mode=True (mặc định): baseline PHẢI encode() ở eval-mode
             #    (dropout tắt) -> KHÔNG thể share memory với nhánh sample (train-mode), cần 2
             #    lần encode() riêng biệt -- đây là yêu cầu đúng đắn, không phải lãng phí
-            #    (xem docs/1_Thuyet_Trinh_Tong_Hop.md §G.22).
+            #    (xem docs/Sign_Language_REL.pdf).
             #    rl_baseline_eval_mode=False: cả 2 nhánh cùng train-mode -> AN TOÀN share 1 lần
             #    encode() duy nhất, tiết kiệm ~1 forward encoder/batch
-            #    (xem docs/1_Thuyet_Trinh_Tong_Hop.md §J điểm yếu B.6).
+            #    (xem docs/Sign_Language_REL.pdf điểm yếu B.6).
             sample_memory = None
             if use_baseline:
                 if cfg.train.rl_baseline_eval_mode:
@@ -160,8 +160,8 @@ def train_scst(model, train_loader, dev_loader, tokenizer, cfg, log_dir: str,
                     model.train()
                     sample_memory = None  # sample_decode tự encode() lại ở train-mode bên dưới
                 else:
-                    # SỬA BUG (quan trọng): trước đây nhánh này share `shared_memory` — vốn được
-                    # tính trong `torch.no_grad()` — sang cho sample_decode. Hậu quả: ENCODER
+                    # SỬA BUG (quan trọng): trước đây nhánh này share `shared_memory` - vốn được
+                    # tính trong `torch.no_grad()` - sang cho sample_decode. Hậu quả: ENCODER
                     # KHÔNG BAO GIỜ NHẬN GRADIENT từ policy loss, chỉ decoder được fine-tune.
                     # Đây đúng là loại lỗi mà §36 cảnh báo cho PPO, chỉ khác là nó nằm im ở
                     # nhánh này của SCST nên không ai để ý.
@@ -223,7 +223,7 @@ def train_scst(model, train_loader, dev_loader, tokenizer, cfg, log_dir: str,
 
             avg_adv = torch.stack(adv_terms, dim=0).mean().item()
             # Giám sát reward-hacking: rep-rate/length-ratio đo trực tiếp trên text sinh ra,
-            # KHÔNG chỉ dựa vào reward tổng hợp (điểm yếu C.13, docs/1_Thuyet_Trinh_Tong_Hop.md §J) --
+            # KHÔNG chỉ dựa vào reward tổng hợp (điểm yếu C.13, docs/Sign_Language_REL.pdf) --
             # BLEU có thể "trông tốt" trong khi model đang lặp/cụt câu.
             rep_rate = sum(repetition_penalty(t) for t in sample_texts_all) / len(sample_texts_all)
             len_ratio = sum(length_penalty(sample_texts_all[i], refs[i % B])
@@ -262,9 +262,9 @@ def train_scst(model, train_loader, dev_loader, tokenizer, cfg, log_dir: str,
                 "bleu": history[-1]["dev_bleu4"] if history else xe_bleu},
                os.path.join(log_dir, "last_rl.pt"))
     if not saved_best:
-        print(f"[!] RL KHÔNG vượt XE (dev BLEU của XE = {xe_bleu:.2f}). Không có best_rl.pt — "
+        print(f"[!] RL KHÔNG vượt XE (dev BLEU của XE = {xe_bleu:.2f}). Không có best_rl.pt - "
               f"dùng last_rl.pt để eval và HÃY BÁO CÁO kết quả âm này thay vì bỏ qua: đó là "
-              f"finding hợp lệ (H3, docs/1_Thuyet_Trinh_Tong_Hop.md §E Experiment 7).")
+              f"finding hợp lệ (H3, docs/Sign_Language_REL.pdf Experiment 7).")
 
     with open(os.path.join(log_dir, "rl_history.json"), "w") as f:
         json.dump(history, f, indent=2)

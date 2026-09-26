@@ -1,14 +1,14 @@
-"""Phase 2 (thay thế SCST) — PPO fine-tuning cho SLT.
+"""Phase 2 (thay thế SCST) - PPO fine-tuning cho SLT.
 Value head (Critic) + GAE + clipped surrogate objective (Schulman et al., 2017).
-Xem docs/1_Thuyet_Trinh_Tong_Hop.md §C.3/C.4/C.6, docs/1_Thuyet_Trinh_Tong_Hop.md §E Experiment 7.
+Xem docs/Sign_Language_REL.pdf/C.4/C.6, docs/Sign_Language_REL.pdf Experiment 7.
 
-`cfg.train.ppo_use_clip=False` chuyển thuật toán này thành A2C (C.5, docs/1_Thuyet_Trinh_Tong_Hop.md)
+`cfg.train.ppo_use_clip=False` chuyển thuật toán này thành A2C (C.5, docs/Sign_Language_REL.pdf)
 -- bỏ clipped surrogate + ép về 1 epoch/rollout (không tận dụng lại batch nhiều lần như PPO thật).
 
-Đơn giản hoá có chủ đích cho lần triển khai đầu (giảm rủi ro debug — docs/1_Thuyet_Trinh_Tong_Hop.md §I §11.3):
+Đơn giản hoá có chủ đích cho lần triển khai đầu (giảm rủi ro debug - docs/Sign_Language_REL.pdf):
 - Reward chỉ đặt ở bước cuối episode (sequence-level BLEU/penalty, giống SCST), KHÔNG dùng
-  reward shaping incremental-BLEU từng bước (Reward 9, docs/1_Thuyet_Trinh_Tong_Hop.md §E)
-  — có thể bật sau khi bản PPO cơ bản này đã ổn định.
+  reward shaping incremental-BLEU từng bước (Reward 9, docs/Sign_Language_REL.pdf)
+  - có thể bật sau khi bản PPO cơ bản này đã ổn định.
 - GAE mặc định gamma=1.0 (episode ngắn <=60 token, không cần discount), lam chỉnh qua config.
 """
 import os, time, json
@@ -88,7 +88,7 @@ def train_ppo(model, train_loader, dev_loader, tokenizer, cfg, log_dir: str, xe_
 
     clip_eps = cfg.train.ppo_clip_eps
     use_clip = bool(getattr(cfg.train, "ppo_use_clip", True))
-    # A2C (C.5, docs/1_Thuyet_Trinh_Tong_Hop.md) = PPO bỏ clipped surrogate + chỉ 1 epoch/rollout
+    # A2C (C.5, docs/Sign_Language_REL.pdf) = PPO bỏ clipped surrogate + chỉ 1 epoch/rollout
     # (không có trust-region, không "tận dụng lại" cùng batch nhiều lần như PPO) -- cùng code path,
     # chỉ khác 2 cờ này, đúng như khuyến nghị "gộp vào ablation PPO (bỏ clip)" trong tài liệu.
     ppo_epochs = cfg.train.ppo_epochs if use_clip else 1

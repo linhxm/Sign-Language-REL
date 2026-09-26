@@ -1,11 +1,11 @@
-"""Đo Latency / FPS / Memory / Parameters (Experiment 15, docs/1_Thuyet_Trinh_Tong_Hop.md §E;
-nhóm metric hệ thống, docs/1_Thuyet_Trinh_Tong_Hop.md §F §9.2).
+"""Đo Latency / FPS / Memory / Parameters (Experiment 15, docs/Sign_Language_REL.pdf;
+nhóm metric hệ thống, docs/Sign_Language_REL.pdf).
 
 Usage:
     python scripts/measure_latency.py --ckpt /kaggle/working/run1_subset25/best_xe.pt \
         --encoder transformer --vocab_size 3000 --batch_sizes 1,16 --n_runs 30
 
-Không cần dataset thật — dùng pose ngẫu nhiên (chỉ đo chi phí compute, không đo chất lượng).
+Không cần dataset thật - dùng pose ngẫu nhiên (chỉ đo chi phí compute, không đo chất lượng).
 Chạy trên đúng GPU dùng để train (T4) để số liệu so sánh được nhất quán giữa các kiến trúc.
 """
 import argparse, os, sys, time

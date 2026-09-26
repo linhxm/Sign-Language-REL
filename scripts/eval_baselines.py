@@ -1,18 +1,18 @@
-"""Baseline CƠ BẢN NHẤT (sàn không-cần-model) cho bảng so sánh — mọi phương pháp trong
+"""Baseline CƠ BẢN NHẤT (sàn không-cần-model) cho bảng so sánh - mọi phương pháp trong
 comparison_table phải được đọc TƯƠNG ĐỐI so với các "sàn" này, không phải con số tuyệt đối
-(docs/1_Thuyet_Trinh_Tong_Hop.md §E, §F).
+(docs/Sign_Language_REL.pdf, §F).
 
     - base_empty         : hypothesis rỗng cho mọi câu (sàn tuyệt đối của BLEU).
     - base_most_frequent : lặp lại câu train xuất hiện NHIỀU NHẤT cho mọi câu test. PHOENIX-2014T
-      là domain thời tiết lặp nhiều — sàn này có thể > 0 đáng kể; model nào không vượt qua nó
+      là domain thời tiết lặp nhiều - sàn này có thể > 0 đáng kể; model nào không vượt qua nó
       thì BLEU của model đó vô nghĩa.
 
-Kết quả merge vào <work_dir>/baseline_data_subset{pct}/test_results.json — đúng định dạng mà
+Kết quả merge vào <work_dir>/baseline_data_subset{pct}/test_results.json - đúng định dạng mà
 scripts/aggregate_results.py đã quét, nên các dòng baseline TỰ xuất hiện trong
 comparison_table.csv/.md không cần sửa gì thêm.
 
-(Các baseline cho frame-selection / decode-policy đã gỡ cùng nhánh RL-ngoài-decoder —
-xem docs/2_Huong_Phat_Trien.md.)
+(Các baseline cho frame-selection / decode-policy đã gỡ cùng nhánh RL-ngoài-decoder -
+xem docs/Sign_Language_REL.pdf.)
 
 Usage (Kaggle):
     python scripts/eval_baselines.py --subset 0.05

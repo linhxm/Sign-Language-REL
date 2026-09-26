@@ -1,12 +1,12 @@
-"""Minimum Risk Training (MRT, Shen et al. ACL 2016) — C.9, docs/1_Thuyet_Trinh_Tong_Hop.md.
+"""Minimum Risk Training (MRT, Shen et al. ACL 2016) - C.9, docs/Sign_Language_REL.pdf.
 
 L_MRT = sum_{y in S} Q(y|x) * (1 - R(y)),  Q(y|x) = softmax(alpha * log pi_theta(y|x)) trong tập
-candidate S (N-best lấy từ sample HOẶC beam search — cfg.train.mrt_candidate_source). Khác SCST:
+candidate S (N-best lấy từ sample HOẶC beam search - cfg.train.mrt_candidate_source). Khác SCST:
 không cần baseline riêng (variance thấp hơn nhờ trung bình trên nhiều candidate cùng lúc thay vì
 1 sample so với greedy).
 
 `mrt_candidate_source="beam"` = cách hiện thực Ý tưởng F.13 (RL/MRT cho beam search policy,
-docs/1_Thuyet_Trinh_Tong_Hop.md §F) — tối ưu các nhánh beam theo reward thay vì log-prob thô,
+docs/Sign_Language_REL.pdf) - tối ưu các nhánh beam theo reward thay vì log-prob thô,
 tái dùng `beam_search_decode(..., return_all_beams=True)` thay vì viết riêng 1 vòng lặp beam khác.
 """
 import os, time, json
@@ -82,7 +82,7 @@ def train_mrt(model, train_loader, dev_loader, tokenizer, cfg, log_dir: str, xe_
             refs = batch["text_raw"]
             B = pose.size(0)
 
-            # 1. Sinh N candidate/input (KHÔNG cần gradient — chỉ cần chuỗi token cố định).
+            # 1. Sinh N candidate/input (KHÔNG cần gradient - chỉ cần chuỗi token cố định).
             with torch.no_grad():
                 memory_ng = model.encode(pose, pose_mask)
                 if source == "beam":
@@ -107,7 +107,7 @@ def train_mrt(model, train_loader, dev_loader, tokenizer, cfg, log_dir: str, xe_
                 [[compute_reward(cand_texts[i][j], refs[i], cfg) for j in range(n_cand)] for i in range(B)],
                 dtype=torch.float32, device=device)  # [B, N]
 
-            # 2. Q(y|x) và risk loss — CÓ gradient (encode lại, khác nhánh sinh candidate ở trên).
+            # 2. Q(y|x) và risk loss - CÓ gradient (encode lại, khác nhánh sinh candidate ở trên).
             with autocast(enabled=amp_enabled):
                 memory = model.encode(pose, pose_mask)
                 seq_logp = _candidate_logprobs(model, memory, pose_mask, cand_ids,

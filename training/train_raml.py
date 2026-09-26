@@ -1,13 +1,13 @@
-"""RAML — Reward Augmented Maximum Likelihood (Norouzi et al., NeurIPS 2016) — C.10,
-docs/1_Thuyet_Trinh_Tong_Hop.md. KHÔNG cần rollout/decode tự hồi quy trong lúc train (khác
-SCST/PPO/MRT) — sample target NHIỄU quanh ground-truth theo phân phối exp(R(y)/tau) rồi train bằng
-MLE THƯỜNG trên các target đã nhiễu, y hệt Cross-Entropy phase về mặt kỹ thuật (chỉ khác target) —
+"""RAML - Reward Augmented Maximum Likelihood (Norouzi et al., NeurIPS 2016) - C.10,
+docs/Sign_Language_REL.pdf. KHÔNG cần rollout/decode tự hồi quy trong lúc train (khác
+SCST/PPO/MRT) - sample target NHIỄU quanh ground-truth theo phân phối exp(R(y)/tau) rồi train bằng
+MLE THƯỜNG trên các target đã nhiễu, y hệt Cross-Entropy phase về mặt kỹ thuật (chỉ khác target) -
 rẻ hơn nhiều vì không cần forward decode từng bước.
 
 Dùng reward Hamming-distance đơn giản (không phải BLEU/reward tổng hợp của compute_reward() trong
 train_scst.py) vì closed-form sampling số lượng edit `q(m) ∝ C(L,m)(V-1)^m·exp(-m/tau)` (Norouzi
-et al. 2016, mục 3.2) chỉ đúng với reward dạng Hamming-distance — đây là lý do RAML "gián tiếp hơn"
-SCST thật (đã nêu ở docs/1_Thuyet_Trinh_Tong_Hop.md §C.10)."""
+et al. 2016, mục 3.2) chỉ đúng với reward dạng Hamming-distance - đây là lý do RAML "gián tiếp hơn"
+SCST thật (đã nêu ở docs/Sign_Language_REL.pdf)."""
 import os, time, json, math
 import numpy as np
 import torch

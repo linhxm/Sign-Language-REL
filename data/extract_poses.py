@@ -1,14 +1,14 @@
 """
-Bước 0 của TOÀN BỘ pipeline — chạy MỘT LẦN, trên máy local hoặc 1 Kaggle kernel RIÊNG
+Bước 0 của TOÀN BỘ pipeline - chạy MỘT LẦN, trên máy local hoặc 1 Kaggle kernel RIÊNG
 (không phải kernel train). Output: 1 file .npz cho mỗi sequence → nén lại → upload thành
 Kaggle Dataset → mount khi train.
 
 CRITICAL: đừng extract pose mỗi lần train. MediaPipe chạy CPU tốn 10-20h/lần cho cả corpus;
 chạy lại mỗi run sẽ phá vỡ toàn bộ ngân sách GPU. Đây là ràng buộc định hình mọi thiết kế
-phía sau (docs/1_Thuyet_Trinh_Tong_Hop.md §G.34).
+phía sau (docs/Sign_Language_REL.pdf).
 
 ------------------------------------------------------------------------------------------
-PHOENIX-2014T KHÔNG PHẢI FILE VIDEO — ĐỌC KỸ PHẦN NÀY
+PHOENIX-2014T KHÔNG PHẢI FILE VIDEO - ĐỌC KỸ PHẦN NÀY
 ------------------------------------------------------------------------------------------
 Bản phát hành chuẩn `PHOENIX-2014-T-release-v3` lưu mỗi câu thành 1 THƯ MỤC ẢNH PNG:
 
@@ -24,7 +24,7 @@ dành cho dataset khác thật sự có file video (vd How2Sign, Experiment 13).
 
 Usage
 -----
-# PHOENIX-2014T (mặc định) — trỏ vào thư mục CHỨA các thư mục <split>
+# PHOENIX-2014T (mặc định) - trỏ vào thư mục CHỨA các thư mục <split>
 python data/extract_poses.py \
     --input_dir  /path/PHOENIX-2014-T/features/fullFrame-210x260px \
     --out_dir    ./poses
@@ -32,7 +32,7 @@ python data/extract_poses.py \
 # Dataset dạng video rời (How2Sign, ...)
 python data/extract_poses.py --mode video --input_dir /path/videos --out_dir ./poses --ext mp4
 
-Kiểm tra nhanh trước khi chạy full (rất nên làm — 10-20h là quá đắt để phát hiện sai đường dẫn):
+Kiểm tra nhanh trước khi chạy full (rất nên làm - 10-20h là quá đắt để phát hiện sai đường dẫn):
 python data/extract_poses.py --input_dir <...> --out_dir ./poses --limit 5
 """
 import os, glob, argparse, time
@@ -64,7 +64,7 @@ def _init_worker(model_complexity: int):
     _WORKER["holistic"] = mp_holistic.Holistic(static_image_mode=False,
                                                model_complexity=model_complexity)
 
-# Layout 183-d — PHẢI khớp cfg.data.pose_dim (configs/config.py)
+# Layout 183-d - PHẢI khớp cfg.data.pose_dim (configs/config.py)
 N_BODY_FEAT = 33 * 3   # 33 khớp body × (x, y, visibility) = 99
 N_HAND_FEAT = 21 * 2   # 21 khớp tay × (x, y)              = 42  (bỏ visibility: không đáng tin)
 POSE_DIM = N_BODY_FEAT + 2 * N_HAND_FEAT  # 99 + 42 + 42 = 183
@@ -76,7 +76,7 @@ def _interpolate_segment(seg: np.ndarray, present: np.ndarray) -> np.ndarray:
     hằng số ở 2 đầu = forward/backward-fill biên).
 
     Vì sao KHÔNG zero-fill: vector 0 tuyệt đối làm model học nhầm "tay đứng yên ở gốc toạ độ"
-    thay vì "thiếu dữ liệu" — 2 tình huống hoàn toàn khác nhau về ngữ nghĩa.
+    thay vì "thiếu dữ liệu" - 2 tình huống hoàn toàn khác nhau về ngữ nghĩa.
 
     Nếu KHÔNG frame nào present -> giữ nguyên 0 (không có neo để nội suy). Đây là nhiễu tiềm
     ẩn còn sót, được đếm và in ra ở cuối main() để biết mức độ nghiêm trọng thay vì bỏ qua.
@@ -178,7 +178,7 @@ def _discover_frame_dirs(input_dir: str):
 
 def _process_one(task):
     """Xử lý 1 sequence trong process con. Trả về tuple kết quả để process cha tổng hợp.
-    KHÔNG raise ra ngoài — 1 sequence hỏng không được phép giết cả Pool sau nhiều giờ chạy."""
+    KHÔNG raise ra ngoài - 1 sequence hỏng không được phép giết cả Pool sau nhiều giờ chạy."""
     unit, out_dir, mode = task
     seq_id = os.path.basename(unit.rstrip("/\\")) if mode == "frames" \
         else os.path.splitext(os.path.basename(unit))[0]
@@ -193,7 +193,7 @@ def _process_one(task):
             poses, all_missing = extract_from_video(unit, holistic)
         assert poses.shape[1] == POSE_DIM, f"shape sai: {poses.shape}"
         # Ghi ra file tạm rồi đổi tên: nếu bị kill giữa chừng (hết giờ Kaggle, tắt máy) thì
-        # KHÔNG để lại file .npz hỏng dở — lần chạy sau sẽ tưởng nó đã xong và bỏ qua.
+        # KHÔNG để lại file .npz hỏng dở - lần chạy sau sẽ tưởng nó đã xong và bỏ qua.
         # Ghi qua file handle đang mở: nếu truyền THẲNG tên "X.npz.tmp", np.savez_compressed
         # tự chèn ".npz" -> ghi nhầm ra "X.npz.tmp.npz" khiến os.replace không thấy file.
         tmp = out_path + ".tmp"
@@ -214,7 +214,7 @@ def main():
                         help="frames = PHOENIX-2014T (mặc định) · video = dataset có file video thật")
     parser.add_argument("--ext", default="mp4", help="chỉ dùng với --mode video")
     parser.add_argument("--limit", type=int, default=0,
-                        help=">0: chỉ xử lý N sequence đầu — DÙNG ĐỂ SMOKE-TEST đường dẫn trước khi chạy full")
+                        help=">0: chỉ xử lý N sequence đầu - DÙNG ĐỂ SMOKE-TEST đường dẫn trước khi chạy full")
     parser.add_argument("--model_complexity", type=int, default=1, choices=[0, 1, 2],
                         help="0 nhanh nhất/kém nhất, 2 chậm nhất/tốt nhất. 1 = cân bằng (mặc định)")
     parser.add_argument("--workers", type=int, default=0,
@@ -222,7 +222,7 @@ def main():
                              "ĐÂY LÀ CỜ QUAN TRỌNG NHẤT: MediaPipe chạy CPU và song song hoá hoàn "
                              "toàn được -> 8 process rút ~13h xuống ~1.7h.")
     parser.add_argument("--shard", type=int, default=0,
-                        help="Chỉ số shard (0-indexed) — chia việc cho nhiều MÁY/KERNEL khác nhau")
+                        help="Chỉ số shard (0-indexed) - chia việc cho nhiều MÁY/KERNEL khác nhau")
     parser.add_argument("--num_shards", type=int, default=1,
                         help="Tổng số shard. Vd 4 máy: mỗi máy chạy --num_shards 4 --shard 0|1|2|3")
     parser.add_argument("--names_file", default=None,
@@ -241,10 +241,10 @@ def main():
 
     print(f"Tìm thấy {len(units)} {kind} trong {args.input_dir}")
     if not units:
-        # Fail nhanh, có hướng dẫn — thay vì chạy 0 vòng lặp rồi báo "xong" gây hiểu nhầm.
+        # Fail nhanh, có hướng dẫn - thay vì chạy 0 vòng lặp rồi báo "xong" gây hiểu nhầm.
         raise SystemExit(
             "Không tìm thấy dữ liệu nào.\n"
-            "  · PHOENIX-2014T lưu ảnh PNG theo thư mục, KHÔNG có file .mp4 — hãy dùng --mode frames\n"
+            "  · PHOENIX-2014T lưu ảnh PNG theo thư mục, KHÔNG có file .mp4 - hãy dùng --mode frames\n"
             "    và trỏ --input_dir vào .../PHOENIX-2014-T/features/fullFrame-210x260px\n"
             "  · Nếu dataset thật sự là video rời, thêm --mode video --ext mp4"
         )
@@ -254,7 +254,7 @@ def main():
         units = [u for u in units if os.path.basename(u.rstrip("/\\")) in wanted]
         print(f"--names_file: lọc còn {len(units)} sequence khớp tên (yêu cầu {len(wanted)} tên)")
         if not units:
-            raise SystemExit("Không sequence nào khớp names_file — kiểm tra tên có đúng cột `name`?")
+            raise SystemExit("Không sequence nào khớp names_file - kiểm tra tên có đúng cột `name`?")
     if args.limit > 0:
         units = units[: args.limit]
         print(f"--limit {args.limit}: chỉ xử lý {len(units)} sequence đầu (smoke-test)")

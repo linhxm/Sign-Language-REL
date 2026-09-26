@@ -246,7 +246,7 @@ def write_flat_csv(rows, out_csv):
 
 
 def build_markdown(rows, datasets):
-    blocks = ["# Bảng tổng kết quả (auto — scripts/make_overview.py)",
+    blocks = ["# Bảng tổng kết quả (auto - scripts/make_overview.py)",
               "",
               f"Ô `{PENDING}` = subset/dataset đó CHƯA train xong (không phải số 0). "
               "Số = BLEU-4 test (sacreBLEU corpus). Chạy lại script sau mỗi lần train để tự điền.",
@@ -256,17 +256,17 @@ def build_markdown(rows, datasets):
         subs = _subsets_present(drows)
         if not subs:
             continue
-        dlabel = {"phoenix": "PHOENIX-2014T (DGS — chính)",
-                  "how2sign": "How2Sign (ASL — thí nghiệm phụ / train thử)"}.get(d, d)
+        dlabel = {"phoenix": "PHOENIX-2014T (DGS - chính)",
+                  "how2sign": "How2Sign (ASL - thí nghiệm phụ / train thử)"}.get(d, d)
         blocks.append(f"## {dlabel}")
         blocks.append("")
         for title, tbl in [
-            ("Bảng 1 — XE vs RL (Transformer core), theo subset", overview_main(drows, d, subs)),
-            ("Bảng 2 — 6 encoder (BLEU-4 SCST, rơi về XE), theo subset", overview_encoders(drows, d, subs)),
-            ("Bảng 3 — reward ablation (SCST), theo subset", overview_reward(drows, d, subs)),
+            ("Bảng 1 - XE vs RL (Transformer core), theo subset", overview_main(drows, d, subs)),
+            ("Bảng 2 - 6 encoder (BLEU-4 SCST, rơi về XE), theo subset", overview_encoders(drows, d, subs)),
+            ("Bảng 3 - reward ablation (SCST), theo subset", overview_reward(drows, d, subs)),
         ]:
             blocks.append(f"### {title}")
-            blocks.append(tbl if tbl else f"_(chưa có dữ liệu — {PENDING})_")
+            blocks.append(tbl if tbl else f"_(chưa có dữ liệu - {PENDING})_")
             blocks.append("")
     cd = cross_dataset(rows, datasets)
     if cd:
@@ -304,7 +304,7 @@ def main():
 
     rows = collect_all(roots)
     if not rows:
-        print("Không có dữ liệu ở bất kỳ root nào — train trước rồi chạy lại.")
+        print("Không có dữ liệu ở bất kỳ root nào - train trước rồi chạy lại.")
         return
 
     datasets = []

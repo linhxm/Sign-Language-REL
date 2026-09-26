@@ -1,4 +1,4 @@
-"""DPO — Direct Preference Optimization (Rafailov et al., 2023) — C.7, docs/1_Thuyet_Trinh_Tong_Hop.md.
+"""DPO - Direct Preference Optimization (Rafailov et al., 2023) - C.7, docs/Sign_Language_REL.pdf.
 
 SLT không có preference con người thật -> tự sinh cặp (win, lose) bằng cách sample `dpo_n_samples`
 câu/input từ chính policy hiện tại, xếp hạng bằng `compute_reward()` (train_scst.py) -- sample điểm

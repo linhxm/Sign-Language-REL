@@ -1,17 +1,17 @@
-"""ST-GCN pose encoder (Yan, Xiong, Lin — AAAI 2018) — kiến trúc thay thế cho
+"""ST-GCN pose encoder (Yan, Xiong, Lin - AAAI 2018) - kiến trúc thay thế cho
 PoseEmbed+TransformerEncoder trong models/slt_transformer.py, dùng cho Experiment 4
-(Transformer vs GCN, xem docs/1_Thuyet_Trinh_Tong_Hop.md §E) và Pipeline 5 (docs/1_Thuyet_Trinh_Tong_Hop.md §A).
+(Transformer vs GCN, xem docs/Sign_Language_REL.pdf) và Pipeline 5 (docs/Sign_Language_REL.pdf).
 
 Output cùng shape [B, T, d_model] như encoder Transformer hiện tại -> decoder không cần đổi gì,
 cô lập đúng 1 biến so sánh (kiến trúc encoder pose).
 
 Đơn giản hoá có chủ đích so với ST-GCN gốc (ghi rõ để không nhầm là bug):
-- Chỉ dùng 2 kênh (x, y) mỗi khớp, bỏ kênh visibility của body — để đồng nhất số kênh giữa
+- Chỉ dùng 2 kênh (x, y) mỗi khớp, bỏ kênh visibility của body - để đồng nhất số kênh giữa
   33 body-landmark (vốn có visibility) và 42 hand-landmark (không có) trong data/extract_poses.py.
 - Đồ thị 75 khớp = 33 body (MediaPipe Pose) + 21 tay trái + 21 tay phải (MediaPipe Hands),
   nối thêm 2 cạnh cổ tay-bàn tay để thành 1 đồ thị thống nhất thay vì 3 đồ thị rời rạc.
 - Temporal conv (kernel=9) chạy cả qua biên frame thật/frame-pad (pose đã bị zero-mask trước khi
-  vào conv nên phần rò rỉ tối thiểu) — decoder vẫn dùng đúng pose_mask để bỏ hoàn toàn các vị trí
+  vào conv nên phần rò rỉ tối thiểu) - decoder vẫn dùng đúng pose_mask để bỏ hoàn toàn các vị trí
   pad ở tầng cross-attention, nên rò rỉ nhỏ này không ảnh hưởng loss/reward cuối cùng.
 """
 import torch
@@ -20,7 +20,7 @@ import torch.nn as nn
 N_BODY, N_HAND = 33, 21
 N_JOINTS = N_BODY + N_HAND * 2  # 75
 
-# MediaPipe Pose (33 điểm) — cạnh khung xương chuẩn
+# MediaPipe Pose (33 điểm) - cạnh khung xương chuẩn
 _BODY_EDGES = [
     (0, 1), (1, 2), (2, 3), (3, 7), (0, 4), (4, 5), (5, 6), (6, 8),
     (9, 10),
@@ -30,7 +30,7 @@ _BODY_EDGES = [
     (23, 25), (25, 27), (27, 29), (27, 31), (29, 31),
     (24, 26), (26, 28), (28, 30), (28, 32), (30, 32),
 ]
-# MediaPipe Hands (21 điểm/tay) — cạnh khung xương chuẩn
+# MediaPipe Hands (21 điểm/tay) - cạnh khung xương chuẩn
 _HAND_EDGES = [
     (0, 1), (1, 2), (2, 3), (3, 4),
     (0, 5), (5, 6), (6, 7), (7, 8),
